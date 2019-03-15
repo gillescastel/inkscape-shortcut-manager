@@ -3,10 +3,9 @@ import tempfile
 import subprocess
 from constants import TARGET
 from clipboard import copy
-from press import press
-from evdev import ecodes
+from Xlib import X
 
-def open_vim(compile_latex):
+def open_vim(self, compile_latex):
     f = tempfile.NamedTemporaryFile(mode='w+', delete=False)
 
     f.write('$$')
@@ -72,5 +71,5 @@ def open_vim(compile_latex):
                     stdin=svg
                 )
 
-        press(ecodes.KEY_V, [ecodes.KEY_LEFTCTRL])
-    press(ecodes.KEY_ESC)
+        self.press('v', X.ControlMask)
+    self.press('Escape')

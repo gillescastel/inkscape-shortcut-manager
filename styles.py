@@ -1,28 +1,24 @@
-from evdev import ecodes
 from pathlib import Path
 from time import sleep
 import os
 from Xlib import X
 
 from clipboard import copy, get
-from constants import KEYSYM_MAP, TARGET, NORMAL
-from press import press
+from constants import TARGET
 from rofi import rofi
 import normal
-
-from mode import mode
 
 pressed = []
 
 script_path = Path(os.path.realpath(__file__)).parents[0]
 
 data_dirs = {
-    'style': script_path / 'data' / 'styles',
-    'object': script_path / 'data' / 'objects',
+    'style': script_path / '..' / 'data' / 'styles',
+    'object': script_path / '..' / 'data' / 'objects',
 }
 
 
-def check(what, manager, name):
+def check(what, self, name):
     files = list(data_dirs[what].iterdir())
     names = [f.stem for f in files]
 
@@ -31,54 +27,50 @@ def check(what, manager, name):
 
     if len(filtered) == 0:
         pressed.clear()
-        return back_to_normal(manager)
+        return back_to_normal(self)
 
     if len(filtered) == 1:
         index = filtered[0]
         copy(files[index].read_text(), target=TARGET)
         if what == 'style':
-            press(ecodes.KEY_V, [ecodes.KEY_LEFTCTRL, ecodes.KEY_LEFTSHIFT])
+            self.press('v', X.ShiftMask | X.ControlMask)
         else:
-            press(ecodes.KEY_V, [ecodes.KEY_LEFTCTRL])
+            self.press('v', X.ControlMask)
 
         sleep(0.5) # Give the user some time when an object is added.
-        return back_to_normal(manager)
+        return back_to_normal(self)
 
 
-def back_to_normal(manager):
-    mode(NORMAL)
+def back_to_normal(self):
+    self.mode = normal.normal_mode
     pressed.clear()
-    manager.teardown()
-    manager.listen(normal.normal_mode)
 
-
-def paste_mode(what, event, keysym, manager):
+def paste_mode(what, self, event, char):
+    print('paste mode')
     if event.state & X.ControlMask:
         # there are modifiers
         # eg. X.ControlMask
         # ~or X.ShiftMask~
         return
 
-    if keysym in KEYSYM_MAP:
-        character = KEYSYM_MAP.get(keysym, 0)
+    if not char:
+        return
 
-        if event.type == X.KeyPress:
-            if character == 'ESC':
-                if len(pressed) == 0:
-                    return back_to_normal(manager)
-                else:
-                    pressed.clear()
-            else:
-                pressed.append(character)
-                return check(what, manager, ''.join(pressed))
+    if event.type != X.KeyRelease:
+        return
 
-        elif event.type == X.KeyRelease:
-            pass
+    if char == 'Escape':
+        if len(pressed) == 0:
+            return back_to_normal(self)
+        else:
+            pressed.clear()
+    else:
+        pressed.append(char)
+        return check(what, self, ''.join(pressed))
 
-def save_mode(what):
-    sleep(0.1)
-    press(ecodes.KEY_C, [ecodes.KEY_LEFTCTRL])
-    sleep(0.1)
+
+def save_mode(what, self):
+    self.press('c', X.ControlMask)
     svg = get(TARGET)
     if not 'svg' in svg:
         return
@@ -106,14 +98,14 @@ def save_mode(what):
 
     (directory / f'{name}.svg').write_text(get(TARGET))
 
-def style_mode(event, keysym, manager):
-    paste_mode('style', event, keysym, manager)
+def style_mode(self, event, char):
+    paste_mode('style', self, event, char)
 
-def object_mode(event, keysym, manager):
-    paste_mode('object', event, keysym, manager)
+def object_mode(self, event, char):
+    paste_mode('object', self, event, char)
 
-def save_style_mode():
-    save_mode('style')
+def save_style_mode(self):
+    save_mode('style', self)
 
-def save_object_mode():
-    save_mode('object')
+def save_object_mode(self):
+    save_mode('object', self)

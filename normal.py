@@ -1,118 +1,111 @@
-from press import press
-from Xlib import X
-from evdev import ecodes
+from Xlib import X, XK, display
 
 from clipboard import copy
-from constants import KEYSYM_MAP, NORMAL, VIM, SAVE_OBJECT, OBJECT, SAVE_STYLE, STYLE, DISABLED
-
-from mode import mode
+from constants import TARGET
 from vim import open_vim
 import styles
-import disabled
+from time import sleep
 
 pressed = set()
-shift = False
 
-def normal_mode(event, keysym, manager):
-    global shift
+events = []
+
+def print_event(self, event):
+
+    updown = ''
+    if event.type == X.KeyPress:
+        updown = '⇓'
+    if event.type == X.KeyRelease:
+        updown = '⇑'
+
+    mods = []
+    if event.state & X.ShiftMask:
+        mods.append('Shift')
     if event.state & X.ControlMask:
-        # there are modifiers
-        # eg. X.ControlMask
-        # ~or X.ShiftMask~
-        return
+        mods.append('Control')
 
-    if keysym in KEYSYM_MAP:
-        character = KEYSYM_MAP.get(keysym, 0)
+    keycode = event.detail
+    keysym = self.disp.keycode_to_keysym(keycode, 0)
+    char = XK.keysym_to_string(keysym)
 
-        if event.type == X.KeyPress:
-            if event.state & X.ShiftMask:
-                shift = True
+    return ''.join((updown, '+'.join(mods), ('+' + char if char else '')))
 
-            pressed.add(character)
+def event_to_string(self, event):
+    mods = []
+    if event.state & X.ShiftMask:
+        mods.append('Shift')
 
-        elif event.type == X.KeyRelease:
+    if event.state & X.ControlMask:
+        mods.append('Control')
 
-            if 'ESC' in pressed:
-                press(ecodes.KEY_F1)
-                pressed.clear()
+    keycode = event.detail
+    keysym = self.disp.keycode_to_keysym(keycode, 0)
+    char = XK.keysym_to_string(keysym)
 
-            if character in pressed:
-                if len(pressed) >= 2:
-                    fire(pressed)
-                else:
-                    key = pressed.pop()
-                    if key == 'w':
-                        press(ecodes.KEY_F6) # pencil
-                    if key == 'e':
-                        press(ecodes.KEY_F5) # ellipse
-                    if key == 'r':
-                        press(ecodes.KEY_F4) # rectangle
-                    if key == 't':
-                        manager.teardown()
-                        mode(VIM)
-                        compile_latex = shift # shift-t compiles latex
-                        open_vim(compile_latex)
-                        mode(NORMAL)
-                        manager.listen(normal_mode)
-                    if key == 'y':
-                        press(ecodes.KEY_F8) #text
-                    
-                    if key == '`':
-                        manager.teardown()
-                        mode(DISABLED)
-                        manager.listen(disabled.disabled_mode)
+    return ''.join(mod + '+' for mod in mods) + (char if char else '?')
 
-                    if shift and key == 'a':
-                        mode(SAVE_OBJECT)
-                        manager.teardown()
-                        styles.save_object_mode()
-                        shift = False
-                        mode(NORMAL)
-                        manager.listen(normal_mode)
-                    elif key == 'a':
-                        mode(OBJECT)
-                        manager.teardown()
-                        manager.listen(styles.object_mode)
+def replay(self):
+    for e in events:
+        self.inkscape.send_event(e, propagate = True)
 
-                    if shift and key == 's':
-                        mode(SAVE_STYLE)
-                        manager.teardown()
-                        styles.save_style_mode()
-                        shift = False
-                        manager.listen(normal_mode)
-                        mode(NORMAL)
-                    elif key == 's':
-                        mode(STYLE)
-                        manager.teardown()
-                        manager.listen(styles.style_mode)
+    self.disp.flush()
+    self.disp.sync()
+    # print('Replayed: ',  ', '.join(print_event(self, e) for e in events))
+    events.clear()
+    pressed.clear()
 
+def normal_mode(self, event, char):
+    events.append(event)
+    # print('Events:   ' + ', '.join(print_event(self, e) for e in events))
 
-                    if key == 'd':
-                        press(ecodes.KEY_F7) # dropper
-                    if key == 'f':
-                        press(ecodes.KEY_F6, [ecodes.KEY_LEFTSHIFT]) # bezier
-                    if key == 'h':
-                        press(ecodes.KEY_H, [ecodes.KEY_LEFTSHIFT]) # flip
+    if event.type == X.KeyPress:
+        if char:
+            pressed.add(event_to_string(self, event))
 
-                    if key == 'z':
-                        press(ecodes.KEY_DELETE) #delete
+    elif event.type == X.KeyRelease:
+        handled = False
 
-                    if key == 'x':
-                        press(ecodes.KEY_5, [ecodes.KEY_LEFTSHIFT]) # snap
+        if len(pressed) >= 2:
+            fire(self, pressed)
+            handled = True
 
-                    if key == 'v':
-                        press(ecodes.KEY_V, [ecodes.KEY_LEFTSHIFT]) # flip
+        if len(pressed) == 1:
+            ev = next(iter(pressed))
 
-                pressed.clear()
+            if ev == 't':
+                open_vim(self, compile_latex=False)
+                handled = True
 
-                if shift:
-                    shift = False
+            if ev == 'Shift+t':
+                open_vim(self, compile_latex=True)
+                handled = True
 
-            if not (event.state & X.ShiftMask):
-                shift = False
+            if ev == 'a':
+                self.mode = styles.object_mode
+                handled = True
 
+            if ev == 'Shift+a':
+                styles.save_object_mode(self)
+                handled = True
 
-def fire(combination):
+            if ev == 's':
+                self.mode = styles.style_mode
+                handled = True
+
+            if ev == 'Shift+s':
+                styles.save_style_mode(self)
+                handled = True
+
+        if handled:
+            events.clear()
+            pressed.clear()
+        else:
+            replay(self)
+    else:
+        pass
+        # print("hu?")
+
+def fire(self, combination):
     pt = 1.327 # pixels
     w = 0.4 * pt
     thick_width = 0.8 * pt
@@ -155,9 +148,13 @@ def fire(combination):
     if 'f' in combination:
         style['fill'] = 'black'
         style['fill-opacity'] = 0.12
+        style['marker-end'] = 'none'
+        style['marker-start'] = 'none'
     if 'b' in combination:
         style['fill'] = 'black'
         style['fill-opacity'] = 1
+        style['marker-end'] = 'none'
+        style['marker-start'] = 'none'
     if not {'f', 'b'} & combination:
         style['fill'] = 'none'
         style['fill-opacity'] = 1
@@ -195,5 +192,5 @@ markerHeight="1.690" markerWidth="0.911">
     )
     svg += f'<inkscape:clipboard style="{style_string}" /></svg>'
 
-    copy(svg, target='image/x-inkscape-svg')
-    press(ecodes.KEY_V, [ecodes.KEY_LEFTSHIFT, ecodes.KEY_LEFTCTRL])
+    copy(svg, target=TARGET)
+    self.press('v', X.ControlMask | X.ShiftMask)
