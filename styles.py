@@ -13,8 +13,8 @@ pressed = []
 script_path = Path(os.path.realpath(__file__)).parents[0]
 
 data_dirs = {
-    'style': script_path / '..' / 'data' / 'styles',
-    'object': script_path / '..' / 'data' / 'objects',
+    'style': script_path / 'data' / 'styles',
+    'object': script_path / 'data' / 'objects',
 }
 
 
