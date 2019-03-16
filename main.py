@@ -48,7 +48,7 @@ class Manager():
         self.inkscape.change_attributes(event_mask = X.KeyReleaseMask | X.KeyPressMask)
 
     def ungrab(self):
-        self.inkscape.ungrab_key(X.AnyKey, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
+        self.inkscape.ungrab_key(X.AnyKey, X.AnyModifier, True)
 
     def listen(self):
         self.grab()
