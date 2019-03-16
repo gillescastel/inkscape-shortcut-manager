@@ -3,6 +3,7 @@ from Xlib import X, XK, display
 from clipboard import copy
 from constants import TARGET
 from vim import open_vim
+import text
 import styles
 from time import sleep
 
@@ -116,6 +117,12 @@ def normal_mode(self, event, char):
             if ev == 'Shift+z':
                 self.press('Delete')
                 handled=True
+
+            if ev == '`':
+                self.press('t')
+                self.mode = text.text_mode
+                handled = True
+
         if handled:
             events.clear()
             pressed.clear()
