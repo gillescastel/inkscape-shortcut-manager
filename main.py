@@ -31,9 +31,13 @@ class Manager():
             detail = detail
         )
 
-    def press(self, key, mask=X.NONE):
+    def string_to_keycode(self, key):
         keysym = XK.string_to_keysym(key)
         keycode = self.disp.keysym_to_keycode(keysym)
+        return keycode
+
+    def press(self, key, mask=X.NONE):
+        keycode = self.string_to_keycode(key)
         self.inkscape.send_event(self.event(event.KeyPress, keycode, mask), propagate = True)
         self.inkscape.send_event(self.event(event.KeyRelease, keycode, mask), propagate = True)
         self.disp.flush()
