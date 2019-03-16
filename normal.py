@@ -175,14 +175,20 @@ def fire(self, combination):
     if 'f' in combination:
         style['fill'] = 'black'
         style['fill-opacity'] = 0.12
-        style['marker-end'] = 'none'
-        style['marker-start'] = 'none'
+
     if 'b' in combination:
         style['fill'] = 'black'
         style['fill-opacity'] = 1
+
+    if 'w' in combination:
+        style['fill'] = 'white'
+        style['fill-opacity'] = 1
+
+    if {'f', 'b', 'w'} & combination:
         style['marker-end'] = 'none'
         style['marker-start'] = 'none'
-    if not {'f', 'b'} & combination:
+
+    if not {'f', 'b', 'w'} & combination:
         style['fill'] = 'none'
         style['fill-opacity'] = 1
 
