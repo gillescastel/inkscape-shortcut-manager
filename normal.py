@@ -96,6 +96,26 @@ def normal_mode(self, event, char):
                 styles.save_style_mode(self)
                 handled = True
 
+            if ev == 'w':
+                self.press('p')
+                handled=True
+
+
+            if ev == 'x':
+                self.press('percent', X.ShiftMask)
+                handled=True
+
+            if ev == 'f':
+                self.press('b')
+                handled=True
+
+            if ev == 'z':
+                self.press('z', X.ControlMask)
+                handled=True
+
+            if ev == 'Shift+z':
+                self.press('Delete')
+                handled=True
         if handled:
             events.clear()
             pressed.clear()
