@@ -32,8 +32,8 @@ def open_vim(self, compile_latex):
             svg = f"""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
             <svg>
               <text
-                 style="font-size:15px; font-family:'Latin Modern Math';-inkscape-font-specification:'Latin Modern Math, Normal';fill:#000000;fill-opacity:1;stroke:none;"
-                 xml:space="preserve"><tspan sodipodi:role="line">{latex}</tspan></text>
+                 style="font-size:10px; font-family:'Iosevka Term';-inkscape-font-specification:'Iosevka Term, Normal';fill:#000000;fill-opacity:1;stroke:none;"
+                 xml:space="preserve"><tspan sodipodi:role="line" >{latex}</tspan></text>
             </svg> """
             copy(svg, target=TARGET)
         else:
