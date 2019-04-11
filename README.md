@@ -1,3 +1,11 @@
+2019-04-11
+- Listens for new Inkscape windows.
+
+2019-03-16
+- implemented pencil, snap, text/disable mode, bezier, delete, undo
+- TODO:
+    - modifier commands via styles?
+    - Listen for new inkscape windows? Multiple instances!
 
 2019-03-15
 - Replaying events works

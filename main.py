@@ -1,3 +1,5 @@
+import threading
+import os
 import Xlib
 from Xlib.display import Display
 from Xlib import X, XK
@@ -10,14 +12,13 @@ import time
 MASK = X.Mod2Mask
 
 class Manager():
-    def __init__(self):
+    def __init__(self, inkscape_id):
+        self.id = inkscape_id
         self.disp = Display()
         self.screen = self.disp.screen()
         self.root = self.screen.root
-        self.inkscape = next(
-            w for w in self.root.query_tree().children
-            if w.get_wm_class() and w.get_wm_class()[0] == 'inkscape'
-        )
+
+        self.inkscape = self.disp.create_resource_object('window', inkscape_id)
         self.mode = normal_mode
 
     def event(self, name, detail, state):
@@ -45,7 +46,8 @@ class Manager():
 
     def grab(self):
         self.inkscape.grab_key(X.AnyKey, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
-        self.inkscape.change_attributes(event_mask = X.KeyReleaseMask | X.KeyPressMask)
+        self.inkscape.ungrab_key(self.string_to_keycode('Super_L'), X.AnyModifier, True)
+        self.inkscape.change_attributes(event_mask = X.KeyReleaseMask | X.KeyPressMask | X.StructureNotifyMask)
 
     def ungrab(self):
         self.inkscape.ungrab_key(X.AnyKey, X.AnyModifier, True)
@@ -60,6 +62,40 @@ class Manager():
                 char = XK.keysym_to_string(keysym)
                 self.disp.allow_events(X.ReplayKeyboard, X.CurrentTime)
                 self.mode(self, evt, char)
+            if evt.type == X.DestroyNotify:
+                if evt.window.id == self.id:
+                    self.ungrab()
+                    return
 
-m = Manager()
-m.listen()
+
+def create(inkscape_id):
+    m = Manager(inkscape_id)
+    m.listen()
+
+def main():
+    disp = Display()
+    screen = disp.screen()
+    root = screen.root
+    root.change_attributes(event_mask=X.SubstructureNotifyMask)
+    while True:
+        evt = disp.next_event()
+        if evt.type == X.CreateNotify:
+            window = evt.window
+            try:
+                if window.get_wm_class() and window.get_wm_class()[0] == 'inkscape':
+                    print('Listening!')
+                    listen = threading.Thread(target=create, args=[window.id])
+                    listen.start()
+
+            except Xlib.error.BadWindow:
+                pass
+
+        if evt.type == X.DestroyNotify:
+            pass
+            # print('Destroyed', evt)
+
+if __name__ == '__main__':
+    main()
+
+# m = Manager()
+# m.listen()

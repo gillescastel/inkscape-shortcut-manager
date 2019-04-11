@@ -101,7 +101,6 @@ def normal_mode(self, event, char):
                 self.press('p')
                 handled=True
 
-
             if ev == 'x':
                 self.press('percent', X.ShiftMask)
                 handled=True
