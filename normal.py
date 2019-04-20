@@ -1,35 +1,13 @@
-from Xlib import X, XK, display
+from Xlib import X, XK
 
 from clipboard import copy
 from constants import TARGET
 from vim import open_vim
 import text
 import styles
-from time import sleep
 
 pressed = set()
-
 events = []
-
-def print_event(self, event):
-
-    updown = ''
-    if event.type == X.KeyPress:
-        updown = '⇓'
-    if event.type == X.KeyRelease:
-        updown = '⇑'
-
-    mods = []
-    if event.state & X.ShiftMask:
-        mods.append('Shift')
-    if event.state & X.ControlMask:
-        mods.append('Control')
-
-    keycode = event.detail
-    keysym = self.disp.keycode_to_keysym(keycode, 0)
-    char = XK.keysym_to_string(keysym)
-
-    return ''.join((updown, '+'.join(mods), ('+' + char if char else '')))
 
 def event_to_string(self, event):
     mods = []
@@ -45,19 +23,19 @@ def event_to_string(self, event):
 
     return ''.join(mod + '+' for mod in mods) + (char if char else '?')
 
+
 def replay(self):
     for e in events:
-        self.inkscape.send_event(e, propagate = True)
+        self.inkscape.send_event(e, propagate=True)
 
     self.disp.flush()
     self.disp.sync()
-    # print('Replayed: ',  ', '.join(print_event(self, e) for e in events))
     events.clear()
     pressed.clear()
 
+
 def normal_mode(self, event, char):
     events.append(event)
-    # print('Events:   ' + ', '.join(print_event(self, e) for e in events))
 
     if event.type == X.KeyPress:
         if char:
@@ -99,23 +77,23 @@ def normal_mode(self, event, char):
 
             if ev == 'w':
                 self.press('p')
-                handled=True
+                handled = True
 
             if ev == 'x':
                 self.press('percent', X.ShiftMask)
-                handled=True
+                handled = True
 
             if ev == 'f':
                 self.press('b')
-                handled=True
+                handled = True
 
             if ev == 'z':
                 self.press('z', X.ControlMask)
-                handled=True
+                handled = True
 
             if ev == 'Shift+z':
                 self.press('Delete')
-                handled=True
+                handled = True
 
             if ev == '`':
                 self.press('t')
@@ -131,7 +109,9 @@ def normal_mode(self, event, char):
         pass
         # print("hu?")
 
+
 def fire(self, combination):
+    # Stolen from TikZ
     pt = 1.327 # pixels
     w = 0.4 * pt
     thick_width = 0.8 * pt
@@ -191,7 +171,6 @@ def fire(self, combination):
         style['fill'] = 'none'
         style['fill-opacity'] = 1
 
-
     if style['fill'] == 'none' and style['stroke'] == 'none':
         return
 
@@ -200,8 +179,9 @@ def fire(self, combination):
 <svg>
 '''
 
+    # Arrow style stolen from tikz
     if ('marker-end' in style and style['marker-end'] != 'none') or \
-    ('marker-start' in style and style['marker-start'] != 'none'):
+            ('marker-start' in style and style['marker-start'] != 'none'):
         svg += f'''
 <defs id="marker-defs">
 <marker
@@ -220,8 +200,8 @@ markerHeight="1.690" markerWidth="0.911">
 '''
 
     style_string = ';'.join('{}: {}'.format(key, value)
-        for key, value in sorted(style.items(), key=lambda x: x[0])
-    )
+                            for key, value in sorted(style.items(), key=lambda x: x[0])
+                           )
     svg += f'<inkscape:clipboard style="{style_string}" /></svg>'
 
     copy(svg, target=TARGET)

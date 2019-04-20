@@ -1,15 +1,10 @@
 import threading
-import os
 import Xlib
 from Xlib.display import Display
 from Xlib import X, XK
-from Xlib.ext import xtest
 from Xlib.protocol import event
 
 from normal import normal_mode
-import time
-
-MASK = X.Mod2Mask
 
 class Manager():
     def __init__(self, inkscape_id):
@@ -23,13 +18,13 @@ class Manager():
 
     def event(self, name, detail, state):
         return name(
-            time = X.CurrentTime,
-            root = self.root,
-            window = self.inkscape,
-            same_screen = 0, child = Xlib.X.NONE,
-            root_x = 0, root_y = 0, event_x = 0, event_y = 0,
-            state = state,
-            detail = detail
+            time=X.CurrentTime,
+            root=self.root,
+            window=self.inkscape,
+            same_screen=0, child=Xlib.X.NONE,
+            root_x=0, root_y=0, event_x=0, event_y=0,
+            state=state,
+            detail=detail
         )
 
     def string_to_keycode(self, key):
@@ -39,15 +34,17 @@ class Manager():
 
     def press(self, key, mask=X.NONE):
         keycode = self.string_to_keycode(key)
-        self.inkscape.send_event(self.event(event.KeyPress, keycode, mask), propagate = True)
-        self.inkscape.send_event(self.event(event.KeyRelease, keycode, mask), propagate = True)
+        self.inkscape.send_event(self.event(event.KeyPress, keycode, mask), propagate=True)
+        self.inkscape.send_event(self.event(event.KeyRelease, keycode, mask), propagate=True)
         self.disp.flush()
         self.disp.sync()
 
     def grab(self):
         self.inkscape.grab_key(X.AnyKey, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
+
+        # Ungrab window manager shortcuts (Super + ...)
         self.inkscape.ungrab_key(self.string_to_keycode('Super_L'), X.AnyModifier, True)
-        self.inkscape.change_attributes(event_mask = X.KeyReleaseMask | X.KeyPressMask | X.StructureNotifyMask)
+        self.inkscape.change_attributes(event_mask=X.KeyReleaseMask | X.KeyPressMask | X.StructureNotifyMask)
 
     def ungrab(self):
         self.inkscape.ungrab_key(X.AnyKey, X.AnyModifier, True)
@@ -56,7 +53,7 @@ class Manager():
         self.grab()
         while True:
             evt = self.disp.next_event()
-            if evt.type in [X.KeyPress, X.KeyRelease]: #ignore X.MappingNotify(=34)
+            if evt.type in [X.KeyPress, X.KeyRelease]:
                 keycode = evt.detail
                 keysym = self.disp.keycode_to_keysym(keycode, 0)
                 char = XK.keysym_to_string(keysym)
@@ -92,10 +89,6 @@ def main():
 
         if evt.type == X.DestroyNotify:
             pass
-            # print('Destroyed', evt)
 
 if __name__ == '__main__':
     main()
-
-# m = Manager()
-# m.listen()

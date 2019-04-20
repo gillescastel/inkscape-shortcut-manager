@@ -18,12 +18,11 @@ data_dirs = {
 }
 
 
-def check(what, self, name):
-    files = list(data_dirs[what].iterdir())
+def check(type_, self, name):
+    files = list(data_dirs[type_].iterdir())
     names = [f.stem for f in files]
 
     filtered = list(i for i, n in enumerate(names) if n.startswith(name))
-    # print(name,', '.join(n for n in names if n.startswith(name)))
 
     if len(filtered) == 0:
         pressed.clear()
@@ -32,7 +31,7 @@ def check(what, self, name):
     if len(filtered) == 1:
         index = filtered[0]
         copy(files[index].read_text(), target=TARGET)
-        if what == 'style':
+        if type_ == 'style':
             self.press('v', X.ShiftMask | X.ControlMask)
         else:
             self.press('v', X.ControlMask)
@@ -45,7 +44,7 @@ def back_to_normal(self):
     self.mode = normal.normal_mode
     pressed.clear()
 
-def paste_mode(what, self, event, char):
+def paste_mode(type_, self, event, char):
     print('paste mode')
     if event.state & X.ControlMask:
         # there are modifiers
@@ -66,31 +65,32 @@ def paste_mode(what, self, event, char):
             pressed.clear()
     else:
         pressed.append(char)
-        return check(what, self, ''.join(pressed))
+        return check(type_, self, ''.join(pressed))
 
+ROFI_THEME = '~/.config/rofi/ribbon.rasi'
 
-def save_mode(what, self):
+def save_mode(type_, self):
     self.press('c', X.ControlMask)
     svg = get(TARGET)
     if not 'svg' in svg:
         return
 
-    directory  = data_dirs[what]
+    directory = data_dirs[type_]
     files = list(directory.iterdir())
     names = [f.stem for f in files]
-    key, index, name = rofi(
+    _, index, name = rofi(
         'Save as',
         names,
-        ['-theme', '~/.config/rofi/ribbon.rasi'],
+        ['-theme', ROFI_THEME],
         fuzzy=False
     )
 
     if index != -1:
-        f = files[index];
-        key, index, yn = rofi(
+        # File exists
+        _, index, yn = rofi(
             f'Overwrite {name}?',
             ['y', 'n'],
-            ['-theme', '~/.config/rofi/ribbon.rasi', '-auto-select'],
+            ['-theme', ROFI_THEME, '-auto-select'],
             fuzzy=False
         )
         if yn == 'n':
