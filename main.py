@@ -87,8 +87,5 @@ def main():
             except Xlib.error.BadWindow:
                 pass
 
-        if evt.type == X.DestroyNotify:
-            pass
-
 if __name__ == '__main__':
     main()
