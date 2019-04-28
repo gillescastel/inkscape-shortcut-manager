@@ -1,3 +1,3 @@
 # Inkscape shortcut manager
 
-Explanation [here](https://castel.dev/lecture-notes-2). Only works on Linux.
+Explanation [here](https://castel.dev/post/lecture-notes-2). Only works on Linux.
