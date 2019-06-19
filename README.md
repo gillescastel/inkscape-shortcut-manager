@@ -37,3 +37,7 @@ Use the shortcut manager by running `python3 main.py` and opening an Inkscape wi
 ## Configuration
 
 You can configure the shortcut manager by creating a file located at `~/.config/inkscape-shortcut-manager/config.py`. You can override the rofi theme, font, editor, as well as the LaTeX template that's being used. It's merged with the default config located at `config.py`. An example configuration file is located in the `examples` directory.
+
+## Related
+
+* [Inkscape figure manager](https://github.com/gillescastel/inkscape-figures)
