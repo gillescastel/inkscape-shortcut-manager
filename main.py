@@ -58,7 +58,9 @@ class Manager():
                 keysym = self.disp.keycode_to_keysym(keycode, 0)
                 char = XK.keysym_to_string(keysym)
                 self.disp.allow_events(X.ReplayKeyboard, X.CurrentTime)
+
                 self.mode(self, evt, char)
+
             if evt.type == X.DestroyNotify:
                 if evt.window.id == self.id:
                     self.ungrab()
@@ -69,18 +71,31 @@ def create(inkscape_id):
     m = Manager(inkscape_id)
     m.listen()
 
+def is_inkscape(window):
+    return window.get_wm_class() and window.get_wm_class()[0] == 'inkscape'
+
 def main():
     disp = Display()
     screen = disp.screen()
     root = screen.root
+
+    # First listen for existing windows
+    for window in root.query_tree().children:
+        if is_inkscape(window):
+            print('Found existing window')
+            listen = threading.Thread(target=create, args=[window.id])
+            listen.start()
+
+
+    # New windows
     root.change_attributes(event_mask=X.SubstructureNotifyMask)
     while True:
         evt = disp.next_event()
         if evt.type == X.CreateNotify:
             window = evt.window
             try:
-                if window.get_wm_class() and window.get_wm_class()[0] == 'inkscape':
-                    print('Listening!')
+                if is_inkscape(window):
+                    print('New window!')
                     listen = threading.Thread(target=create, args=[window.id])
                     listen.start()
 
