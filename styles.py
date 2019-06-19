@@ -5,18 +5,25 @@ from Xlib import X
 
 from clipboard import copy, get
 from constants import TARGET
+from config import config, CONFIG_PATH
 from rofi import rofi
 import normal
 
 pressed = []
 
-script_path = Path(os.path.realpath(__file__)).parents[0]
+def create_if_not_exists(directory):
+    if not directory.exists():
+        directory.mkdir(parents=True)
+    return directory
 
 data_dirs = {
-    'style': script_path / 'data' / 'styles',
-    'object': script_path / 'data' / 'objects',
+    'style': create_if_not_exists(CONFIG_PATH / 'styles'),
+    'object': create_if_not_exists(CONFIG_PATH / 'objects'),
 }
 
+rofi_theme_params = ['-theme', config['rofi_theme']] if 'rofi_theme' in config else []
+
+print(data_dirs)
 
 def check(type_, self, name):
     files = list(data_dirs[type_].iterdir())
@@ -67,7 +74,6 @@ def paste_mode(type_, self, event, char):
         pressed.append(char)
         return check(type_, self, ''.join(pressed))
 
-ROFI_THEME = '~/.config/rofi/ribbon.rasi'
 
 def save_mode(type_, self):
     self.press('c', X.ControlMask)
@@ -81,7 +87,7 @@ def save_mode(type_, self):
     _, index, name = rofi(
         'Save as',
         names,
-        ['-theme', ROFI_THEME],
+        rofi_theme_params,
         fuzzy=False
     )
 
@@ -90,7 +96,7 @@ def save_mode(type_, self):
         _, index, yn = rofi(
             f'Overwrite {name}?',
             ['y', 'n'],
-            ['-theme', ROFI_THEME, '-auto-select'],
+            rofi_theme_params + ['-auto-select'],
             fuzzy=False
         )
         if yn == 'n':

@@ -3,6 +3,7 @@ import tempfile
 import subprocess
 from constants import TARGET
 from clipboard import copy
+from config import config
 from Xlib import X
 
 def open_vim(self, compile_latex):
@@ -11,15 +12,7 @@ def open_vim(self, compile_latex):
     f.write('$$')
     f.close()
 
-    subprocess.run([
-        'urxvt',
-        '-fn', 'xft:Iosevka Term:pixelsize=24',
-        '-geometry', '60x5',
-        '-name', 'popup-bottom-center',
-        '-e', "vim",
-        "-u", "~/.minimal-tex-vimrc",
-        f"{f.name}",
-    ])
+    config['open_editor'](f.name)
 
     latex = ""
     with open(f.name, 'r') as g:
@@ -32,24 +25,13 @@ def open_vim(self, compile_latex):
             svg = f"""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
             <svg>
               <text
-                 style="font-size:10px; font-family:'Iosevka Term';-inkscape-font-specification:'Iosevka Term, Normal';fill:#000000;fill-opacity:1;stroke:none;"
+                 style="font-size:{config['font_size']}px; font-family:'{config['font']}';-inkscape-font-specification:'{config['font']}, Normal';fill:#000000;fill-opacity:1;stroke:none;"
                  xml:space="preserve"><tspan sodipodi:role="line" >{latex}</tspan></text>
             </svg> """
             copy(svg, target=TARGET)
         else:
             m = tempfile.NamedTemporaryFile(mode='w+', delete=False)
-            m.write(r"""
-                \documentclass[12pt,border=12pt]{standalone}
-
-                \usepackage[utf8]{inputenc}
-                \usepackage[T1]{fontenc}
-                \usepackage{textcomp}
-                \usepackage[dutch]{babel}
-                \usepackage{amsmath, amssymb}
-                \newcommand{\R}{\mathbb R}
-
-                \begin{document}
-            """ + latex + r"""\end{document}""")
+            m.write(config['latex_document'](latex))
             m.close()
 
             working_directory = tempfile.gettempdir()

@@ -62,6 +62,7 @@ def normal_mode(self, event, char):
 
 def handle_single_key(self, ev):
     if ev == 't':
+        # Vim mode
         open_vim(self, compile_latex=False)
     elif ev == 'Shift+t':
         # Vim mode prerendered
@@ -205,6 +206,6 @@ def paste_style(self, combination):
                             for key, value in sorted(style.items(), key=lambda x: x[0])
                            )
     svg += f'<inkscape:clipboard style="{style_string}" /></svg>'
-    
+
     copy(svg, target=TARGET)
     self.press('v', X.ControlMask | X.ShiftMask)
