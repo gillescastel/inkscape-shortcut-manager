@@ -20,7 +20,6 @@ def latex_document(latex):
         \usepackage{textcomp}
         \usepackage{amsmath, amssymb}
         \newcommand{\R}{\mathbb R}
-        \usepackage{cmbright}
 
         \begin{document}
     """ + latex + r"\end{document}"
