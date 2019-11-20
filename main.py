@@ -44,17 +44,21 @@ class Manager():
 
         # Ungrab window manager shortcuts (Super + ...)
         self.inkscape.ungrab_key(self.string_to_keycode('Super_L'), X.AnyModifier, True)
+        self.inkscape.ungrab_key(self.string_to_keycode('Shift_L'), X.AnyModifier, True)
         self.inkscape.change_attributes(event_mask=X.KeyReleaseMask | X.KeyPressMask | X.StructureNotifyMask)
 
     def ungrab(self):
         self.inkscape.ungrab_key(X.AnyKey, X.AnyModifier, True)
 
     def listen(self):
+        print('keycode of Super_L:', self.string_to_keycode('Super_L'))
+        print('keycode of Shift_L:', self.string_to_keycode('Shift_L'))
         self.grab()
         while True:
             evt = self.disp.next_event()
             if evt.type in [X.KeyPress, X.KeyRelease]:
                 keycode = evt.detail
+                print('keycode', keycode)
                 keysym = self.disp.keycode_to_keysym(keycode, 0)
                 char = XK.keysym_to_string(keysym)
                 self.disp.allow_events(X.ReplayKeyboard, X.CurrentTime)
