@@ -47,15 +47,18 @@ def normal_mode(self, event, char):
     if event.type != X.KeyRelease:
         return 
 
+    handled = False
     if len(pressed) > 1:
         paste_style(self, pressed)
-
-    if len(pressed) == 1:
+        handled = True
+    elif len(pressed) == 1:
         # Get the only element in pressed
         ev = next(iter(pressed))
         handled = handle_single_key(self, ev)
-        if not handled:
-            replay(self)
+        
+    # replay events to Inkscape if we couldn't handle them
+    if not handled:
+        replay(self)
 
     events.clear()
     pressed.clear()
