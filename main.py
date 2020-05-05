@@ -72,7 +72,7 @@ def create(inkscape_id):
     m.listen()
 
 def is_inkscape(window):
-    return window.get_wm_class() and window.get_wm_class()[0] == 'inkscape'
+    return (window.get_wm_class() and 'inkscape' in window.                        get_wm_class()[0])
 
 def main():
     disp = Display()
