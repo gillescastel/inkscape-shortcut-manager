@@ -44,4 +44,4 @@ You can configure the shortcut manager by creating a file located at `~/.config/
 
 ## Issues
 
-* If your teminal does not have good Unicode-support you can install `urxvt` with the command `sudo apt install rxvt-unicode`. This issue was encountered and solved on `Ubuntu 20.04.1 LTS`.
+* If your teminal does not have good Unicode-support you can install `urxvt` with the command `sudo apt install rxvt-unicode`. This issue was encountered and solved on `Ubuntu 20.04.1 LTS` and the error message said `FileNotFoundError: [Errno 2] No such file or directory: 'urxvt'`.
