@@ -21,7 +21,7 @@ data_dirs = {
     'object': create_if_not_exists(CONFIG_PATH / 'objects'),
 }
 
-rofi_theme_params = ['-theme', config['rofi_theme']] if 'rofi_theme' in config else []
+rofi_theme_params = ['-theme', config['rofi_theme']] if ('rofi_theme' in config and config['rofi_theme'] is not None) else []
 
 print(data_dirs)
 
