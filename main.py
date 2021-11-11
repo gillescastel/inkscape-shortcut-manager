@@ -45,6 +45,8 @@ class Manager():
         # Ungrab window manager shortcuts (Super + ...)
         self.inkscape.ungrab_key(self.string_to_keycode('Super_L'), X.AnyModifier, True)
         self.inkscape.ungrab_key(self.string_to_keycode('Alt_L'), X.AnyModifier, True)
+        self.inkscape.ungrab_key(self.string_to_keycode('Shift_L'), X.Mod4Mask, True)
+        self.inkscape.ungrab_key(self.string_to_keycode('Shift_L'), X.Mod1Mask, True)
         self.inkscape.change_attributes(event_mask=X.KeyReleaseMask | X.KeyPressMask | X.StructureNotifyMask)
 
     def ungrab(self):
